@@ -3,3 +3,5 @@ ultralytics
 mediapipe
 numpy
 pillow
+transformers
+torch
