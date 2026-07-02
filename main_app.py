@@ -5,16 +5,15 @@ import io
 from PIL import Image, ImageDraw, ImageFont
 from ultralytics import YOLO
 
-# 1. INITIALIZE DASHBOARD PREFERENCES
+# 1. INITIALIZE DASHBOARD CONFIGURATION
 st.set_page_config(page_title="PragyanAI Vision Analytics Studio", layout="wide", page_icon="👁️")
 
 # =====================================================================
-# 2. MODEL INGESTION LAYER (THREAD-SAFE CACHING)
+# 2. MODEL INGESTION LAYER (THREAD-SAFE CACHING ON CPU)
 # =====================================================================
 @st.cache_resource
 def load_vision_pipelines():
-    """Downloads and caches model instances onto CPU memory to protect thread performance."""
-    # Light-weight YOLOv8 nano model for general object boundaries tracking
+    """Downloads and caches model instances onto CPU memory using PIL formatting."""
     yolo_ctx = YOLO("yolov8n.pt")
     
     # Initialize MediaPipe individual component modules
@@ -26,42 +25,41 @@ def load_vision_pipelines():
     
     return yolo_ctx, mp_face, mp_mesh, mp_hands, mp_pose, mp_seg
 
-# Global background initialization
+# Global background engine initialization
 yolo, mp_face, mp_mesh, mp_hands, mp_pose, mp_seg = load_vision_pipelines()
 
 # =====================================================================
-# 3. INTERACTIVE RENDERING INTERFACE
+# 3. INTERACTIVE DASHBOARD RENDERING INTERFACE
 # =====================================================================
-st.title(" PragyanAI AI Multi-Modal Vision Analytics Studio")
-st.caption("A compact production workflow running YOLOv8 object boundaries tracking alongside MediaPipe topology layers.")
+st.title("PragyanAI Multi-Modal Vision Analytics Studio")
+st.caption("A compact production workflow running YOLOv8 tracking alongside MediaPipe topology layers using 100% PIL.")
 
-uploaded_file = st.file_uploader("📥 Ingest target image file workspace...", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Ingest target image file workspace...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Read data streams safely to standard RGB canvas matrices
+    # Read data streams directly to standard RGB PIL containers
     orig_img = Image.open(uploaded_file).convert("RGB")
     w, h = orig_img.size
     img_np = np.array(orig_img)
 
-    # Sidebar parameters manipulation options panel
+    # Sidebar feature selection toggles
     st.sidebar.header("Pipeline Layer Configurations")
-    run_seg = st.sidebar.checkbox("🧼 Apply Background Removal (Selfie Segmentation)", value=False)
+    run_seg = st.sidebar.checkbox("🧼 Apply Background Removal (Segmentation)", value=False)
     run_yolo = st.sidebar.checkbox("🎯 YOLOv8 Object Tracking Bounding Boxes", value=True)
     run_face = st.sidebar.checkbox("👤 MediaPipe Face Boundaries", value=False)
     run_mesh = st.sidebar.checkbox("🕸️ MediaPipe Facial Mesh Coordinates", value=False)
     run_hands = st.sidebar.checkbox("✋ MediaPipe Hand Joint Landmarks", value=False)
     run_pose = st.sidebar.checkbox("🏋️‍♂️ MediaPipe Skeletal Pose Estimation", value=False)
 
-    # Operational Step 1: Execute selfie foreground segmentation isolation matrix layers first
+    # Operational Step 1: Execute selfie foreground segmentation using numpy matrix layer mask switches
     if run_seg:
         with st.spinner("Processing segmentation mask contours..."):
             seg_res = mp_seg.process(img_np)
-            # Binary threshold mask creation
             mask = np.stack((seg_res.segmentation_mask > 0.4,) * 3, axis=-1)
-            # Swap background pixel matrices with clean white canvas array layers
+            # Swap background pixel matrices with clean white canvas array layers natively
             img_np = np.where(mask, img_np, np.full(img_np.shape, (255, 255, 255), dtype=np.uint8))
 
-    # Initialize standard PIL mutable canvas layers overrides
+    # Initialize standard PIL mutable canvas layers overrides (Completely avoiding cv2 drawing commands)
     out_img = Image.fromarray(img_np)
     draw = ImageDraw.Draw(out_img)
     
@@ -70,7 +68,7 @@ if uploaded_file is not None:
     except Exception:
         font = ImageFont.load_default()
 
-    # Track metrics inside telemetry logs dictionary structure mapping
+    # Track metrics inside telemetry logs dictionary
     telemetry_summary = {"objects": [], "faces": 0, "hands": 0, "landmarks": 0}
 
     # Operational Step 2: Execute YOLO Object Boundaries Tracking
@@ -83,7 +81,7 @@ if uploaded_file is not None:
                 xyxy = box.xyxy[0].tolist()
                 telemetry_summary["objects"].append(label)
                 
-                # Render neon vector box and text identifiers
+                # Render clean vector box outlines and text via PIL Draw Canvas
                 draw.rectangle(xyxy, outline="#00E5FF", width=3)
                 draw.text((xyxy[0], max(0, xyxy[1] - 14)), f"{label} {conf:.1%}", fill="#00E5FF", font=font)
 
@@ -133,13 +131,13 @@ if uploaded_file is not None:
     # Display results layout splitting panels side-by-side
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("### 🖼️ Original Input view")
+        st.markdown("### 🖼️ Original Input View")
         st.image(orig_img, use_container_width=True)
     with col2:
         st.markdown("### 🖥️ Deep AI Processing Output")
         st.image(out_img, use_container_width=True)
         
-        # Fast file compilation buffer logic to download asset locally
+        # Memory-efficient byte stream compilation buffer to handle file download asset
         buf = io.BytesIO()
         out_img.save(buf, format="PNG")
         st.download_button(
@@ -150,7 +148,7 @@ if uploaded_file is not None:
             use_container_width=True
         )
 
-    # Display bottom-row clean telemetry summaries matrix
+    # Telemetry dashboards representation row
     st.divider()
     st.markdown("### Live Analytics Matrix Summary")
     kpi1, kpi2, kpi3, kpi4 = st.columns(4)
